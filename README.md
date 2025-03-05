@@ -1,8 +1,8 @@
 # xk6-rock
 
-[![Open a PR to OCI Factory](https://github.com/canonical/k6-rock/actions/workflows/rock-release-oci-factory.yaml/badge.svg)](https://github.com/canonical/k6-rock/actions/workflows/rock-release-oci-factory.yaml)
-[![Publish to GHCR:dev](https://github.com/canonical/k6-rock/actions/workflows/rock-release-dev.yaml/badge.svg)](https://github.com/canonical/k6-rock/actions/workflows/rock-release-dev.yaml)
-[![Update Rock](https://github.com/canonical/k6-rock/actions/workflows/rock-update.yaml/badge.svg)](https://github.com/canonical/k6-rock/actions/workflows/rock-update.yaml)
+[![Open a PR to OCI Factory](https://github.com/canonical/xk6-rock/actions/workflows/rock-release-oci-factory.yaml/badge.svg)](https://github.com/canonical/xk6-rock/actions/workflows/rock-release-oci-factory.yaml)
+[![Publish to GHCR:dev](https://github.com/canonical/xk6-rock/actions/workflows/rock-release-dev.yaml/badge.svg)](https://github.com/canonical/xk6-rock/actions/workflows/rock-release-dev.yaml)
+[![Update Rock](https://github.com/canonical/xk6-rock/actions/workflows/rock-update.yaml/badge.svg)](https://github.com/canonical/xk6-rock/actions/workflows/rock-update.yaml)
 
 [Rocks](https://canonical-rockcraft.readthedocs-hosted.com/en/latest/) for [`k6`](https://k6.io/).  
 This repository holds all the necessary files to build rocks for the upstream versions we support. The k6 rock is used by the [k6-k8s-operator](https://github.com/canonical/k6-k8s-operator) charm.
