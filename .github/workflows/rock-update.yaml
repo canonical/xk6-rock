@@ -1,0 +1,15 @@
+name: Update rock
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    uses: canonical/observability/.github/workflows/rock-update.yaml@v1
+    secrets: inherit
+    with:
+      rock-name: xk6
+      source-repo: grafana/k6
+      check-go: false

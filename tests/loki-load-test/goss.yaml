@@ -1,0 +1,15 @@
+command:
+  k6-run:
+    exit-status: 0
+    timeout: 20000 # milliseconds
+    exec: |
+      echo "Namespace: {{.Env.NAMESPACE}}"
+      # Get k6 pod
+      K6_POD="$(kubectl get pod -n {{.Env.NAMESPACE}} -l app="xk6-dev" \
+        -o jsonpath='{.items[0].metadata.name}')"
+      if [ -z "$K6_POD" ]; then
+        echo "k6 pod not found, maybe the pod isn't ready yet"
+        exit 1
+      fi
+      echo "Running k6 script"
+      kubectl exec -n {{.Env.NAMESPACE}} "$K6_POD" -- k6 run /etc/k6/test.js

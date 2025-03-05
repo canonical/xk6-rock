@@ -1,0 +1,43 @@
+name: xk6
+summary: Grafana k6 in a ROCK.
+description: A modern load testing tool, using Go and JavaScript.
+version: "0.57.0"
+base: ubuntu@24.04
+license: Apache-2.0
+platforms:
+  amd64:
+  arm64:
+parts:
+  k6:
+    plugin: dump
+    source: .
+    build-packages:
+      - git
+    build-snaps:
+      - go/1.22/stable
+      - yq/v4/stable
+    stage-packages:
+      - ca-certificates
+    override-build: |
+      set -x
+      K6_VERSION="0.57.0"
+      go install go.k6.io/xk6/cmd/xk6@latest
+      # Build the '--with' arguments for the extensions
+      EXTENSIONS="$(yq '.extensions | map ("--with " + .) | join(" ")' extensions.yaml)"
+      /root/go/bin/xk6 build ${EXTENSIONS}
+      install -D -m755 ${CRAFT_PART_BUILD}/k6 ${CRAFT_PART_INSTALL}/bin/k6
+    stage:
+      - bin/k6
+  ca-certs:
+    plugin: nil
+    overlay-packages: [ca-certificates]
+  # The security manifest is required when .deb packages are added to the ROCK
+  deb-security-manifest:
+    plugin: nil
+    after:
+      - k6
+      - ca-certs
+    override-prime: |
+      set -x
+      mkdir -p $CRAFT_PRIME/usr/share/rocks/
+      (echo "# os-release" && cat /etc/os-release && echo "# dpkg-query" && dpkg-query --admindir=$CRAFT_PRIME/var/lib/dpkg/ -f '${db:Status-Abbrev},${binary:Package},${Version},${source:Package},${Source:Version}\n' -W) > $CRAFT_PRIME/usr/share/rocks/dpkg.query
