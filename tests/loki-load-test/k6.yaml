@@ -1,0 +1,67 @@
+--- # OpenTelemetry Collector config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-scripts
+data:
+  test.js: |
+    import loki from 'k6/x/loki';
+    import { sleep } from 'k6';
+
+    export const options = {
+      vus: 2,
+      duration: "4s",
+      thresholds: {
+        http_req_failed: ['rate==0'],
+      }
+    }
+
+    const loki_url = "http://fake@loki.test-xk6-rock-loki-load-test.svc.cluster.local:3100"
+    const conf = loki.Config(loki_url);
+    const client = loki.Client(conf);
+
+    export default function () {
+      const streams = 2 // How many log streams per client
+      const minSize = 64  // log line minimum size
+      const maxSize = 256  // log line maximum size
+      const res = client.pushParameterized(streams, minSize, maxSize)
+      sleep(1)
+    };
+--- # OpenTelemetry Collector deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xk6-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xk6-dev
+  template:
+    metadata:
+      labels:
+        app: xk6-dev
+    spec:
+      containers:
+        - name: xk6-dev
+          image: localhost:32000/xk6-dev:latest
+          volumeMounts:
+            - name: k6-volume
+              mountPath: /etc/k6/test.js # Change this to the desired mount path
+              subPath: test.js  # This specifies the file name in the ConfigMap
+      volumes:
+        - name: k6-volume
+          configMap:
+            name: k6-scripts
+--- # OpenTelemetry Collector Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: k6-dev
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6565
+      name: stats
+  selector:
+    app: k6-dev

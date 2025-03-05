@@ -1,0 +1,7 @@
+command:
+  version:
+    exit-status: 0
+    exec: "k6 version"
+    stdout:
+      - /k6 v.*/
+      - /xk6-loki/
