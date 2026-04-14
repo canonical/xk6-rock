@@ -14,7 +14,7 @@ execute: |
     --network "${PROJECT}_default" \
     -v "$(pwd)/test.js:/test.js" \
     rockcraft-test:latest \
-    run /test.js
+    exec -- k6 run /test.js
 
 restore: |
   PROJECT="xk6-loki-load-test"
