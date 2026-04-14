@@ -2,7 +2,7 @@ set allow-duplicate-recipes
 set allow-duplicate-variables
 import? 'rocks.just'
 
-rock_name := "k6"
+rock_name := "xk6"
 
 [private]
 @default:
@@ -37,7 +37,7 @@ update source_repo:
   if [[ -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
     go_snap_version="$(grep -Po '^go \K(\S+)' "$TMP_DIR/{{source_repo}}/go.mod" | sed -E 's/([0-9]+\.[0-9]+).*/\1/')"
     go_snap_version="$go_snap_version" yq -i \
-      '(.parts.{{rock_name}}.build-snaps[] | select(test("^go/"))) = "go/"+strenv(go_snap_version)+"/candidate"' \
+      '(.parts.k6.build-snaps[] | select(test("^go/"))) = "go/"+strenv(go_snap_version)+"/candidate"' \
       "./$version/rockcraft.yaml"
   fi
   rm -rf "$TMP_DIR"
