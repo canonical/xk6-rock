@@ -1,0 +1,22 @@
+summary: Run loki-load-test
+
+execute: |
+  PROJECT="xk6-loki-load-test"
+
+  # Deploy Loki
+  docker compose --project-name "$PROJECT" up --detach
+
+  # Wait for Loki to be ready
+  sleep 10
+
+  # Run k6 load test against Loki
+  docker run --rm \
+    --network "${PROJECT}_default" \
+    -v "$(pwd)/test.js:/test.js" \
+    rockcraft-test:latest \
+    exec -- k6 run /test.js
+
+restore: |
+  PROJECT="xk6-loki-load-test"
+
+  docker compose --project-name "$PROJECT" down --volumes
