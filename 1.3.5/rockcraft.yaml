@@ -28,7 +28,6 @@ parts:
       install -D -m755 ${CRAFT_PART_BUILD}/k6 ${CRAFT_PART_INSTALL}/bin/k6
     stage:
       - bin/k6
-    source-tag: v1.3.5
   ca-certs:
     plugin: nil
     overlay-packages: [ca-certificates]

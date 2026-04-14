@@ -27,8 +27,8 @@ update source_repo:
   if [[ -d "$version" ]]; then echo "Folder $version already exists, nothing to do" && exit 0; fi
   # Create the folder for the new version and update the rockcraft.yaml
   cp -r "{{latest_version}}" "$version"
-  latest_release="$latest_release" version="$version" yq -i \
-    '.version = strenv(version) | .parts.{{rock_name}}["source-tag"] = strenv(latest_release)' \
+  version="$version" yq -i \
+    '.version = strenv(version)' \
     "./$version/rockcraft.yaml"
   # Automatically update build tools (go) from the upstream repository
   TMP_DIR="$(mktemp -d)"
