@@ -31,7 +31,7 @@ parts:
   ca-certs:
     plugin: nil
     overlay-packages: [ca-certificates]
-  # The security manifest is required when .deb packages are added to the ROCK
+  # The security manifest is required when .deb packages are added to the rock
   deb-security-manifest:
     plugin: nil
     after:
