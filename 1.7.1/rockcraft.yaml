@@ -2,7 +2,7 @@ name: xk6
 summary: Grafana k6 in a ROCK.
 description: A modern load testing tool, using Go and JavaScript.
 version: "1.7.1"
-base: ubuntu@24.04
+base: ubuntu@26.04
 license: Apache-2.0
 platforms:
   amd64:
