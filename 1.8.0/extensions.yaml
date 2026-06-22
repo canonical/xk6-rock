@@ -1,0 +1,2 @@
+extensions:
+  - github.com/grafana/xk6-loki@v1.0.0
