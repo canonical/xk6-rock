@@ -1,5 +1,0 @@
-services:
-  loki:
-    image: ubuntu/loki:3-24.04
-    ports:
-      - "3100:3100"

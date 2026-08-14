@@ -3,6 +3,7 @@ set allow-duplicate-variables
 import? 'rocks.just'
 
 rock_name := "xk6"
+source_repo := 'grafana/k6'
 
 [private]
 @default:
@@ -10,38 +11,30 @@ rock_name := "xk6"
   echo ""
   echo "For help with a specific recipe, run: just --usage <recipe>"
 
-# Generate a rock for the latest version of the upstream project
-[arg("source_repo", help="Repository of the upstream project in 'org/repo' form")]
+# Patch all existing major.minor folders to the newest upstream patch version
 [group("maintenance")]
-update source_repo:
+update:
   #!/usr/bin/env bash
   set -e
-  latest_release="$(gh release list --repo {{source_repo}} --exclude-pre-releases --limit=1 --json tagName --jq '.[0].tagName')"
-  echo "Latest release for {{source_repo}} is $latest_release"
-  # Explicitly filter out prefixes for known rocks, so we can notice if a new rock has a different schema
-  version="${latest_release}"
-  version="${version#mimir-}"  # mimir
-  version="${version#cmd/builder/v}"  # opentelemetry-collector
-  version="${version#v}"  # Generic v- prefix
-  # If the version already exists as a rock, exit here
-  if [[ -d "$version" ]]; then echo "Folder $version already exists, nothing to do" && exit 0; fi
-  # Create the folder for the new version and update the rockcraft.yaml
-  cp -r "{{latest_version}}" "$version"
-  version="$version" yq -i \
-    '.version = strenv(version)' \
-    "./$version/rockcraft.yaml"
-  # Automatically update build tools (go) from the upstream repository
-  TMP_DIR="$(mktemp -d)"
-  gh repo clone "{{source_repo}}" "$TMP_DIR/{{source_repo}}" -- --branch "$latest_release" --depth 1
-  # If it's a Go project, update the Go version
-  if [[ -f "$TMP_DIR/{{source_repo}}/go.mod" ]]; then
-    go_snap_version="$(grep -Po '^go \K(\S+)' "$TMP_DIR/{{source_repo}}/go.mod" | sed -E 's/([0-9]+\.[0-9]+).*/\1/')"
-    go_snap_version="$go_snap_version" yq -i \
-      '(.parts.k6.build-snaps[] | select(test("^go/"))) = "go/"+strenv(go_snap_version)+"/candidate"' \
-      "./$version/rockcraft.yaml"
-  fi
-  rm -rf "$TMP_DIR"
-  # Substitute the additional version reference
-  sed -i "s|K6_VERSION=[^']*|K6_VERSION=${version}|g" "${version}/rockcraft.yaml"
-  echo "✓ Created rock for version $version"
+  [[ -z "{{source_repo}}" ]] && { echo "× Set 'source_repo' in the local justfile"; exit 1; }
+  for folder in $(find . -maxdepth 1 -type d -regextype posix-extended -regex '\./[0-9]+\.[0-9]+' -printf '%f\n' | sort -V); do
+    read -r version tag < <(just resolve-tag "$folder")
+    if [[ -z "$version" ]]; then echo "→ no upstream patch found for $folder, skipping"; continue; fi
+    current="$(yq -r '.version' "$folder/rockcraft.yaml")"
+    if [[ "$current" == "$version" ]]; then echo "→ $folder already at $version"; continue; fi
+    echo "Updating $folder: $current → $version"
+    version="$version" yq -i '.version = strenv(version)' "$folder/rockcraft.yaml"
+    # Sync the embedded K6_VERSION build reference
+    sed -i "s|K6_VERSION=[^']*|K6_VERSION=${version}|g" "$folder/rockcraft.yaml"
+    # Refresh the Go build-snap from the upstream go.mod
+    TMP_DIR="$(mktemp -d)"
+    gh repo clone "{{source_repo}}" "$TMP_DIR/src" -- --branch "$tag" --depth 1 2>/dev/null || true
+    if [[ -f "$TMP_DIR/src/go.mod" ]]; then
+      go_snap_version="$(grep -Po '^go \K(\S+)' "$TMP_DIR/src/go.mod" | sed -E 's/([0-9]+\.[0-9]+).*/\1/')"
+      go_snap_version="$go_snap_version" yq -i \
+        '(.parts.k6.build-snaps[] | select(test("^go/"))) = "go/"+strenv(go_snap_version)+"/candidate"' \
+        "$folder/rockcraft.yaml"
+    fi
+    rm -rf "$TMP_DIR"
+  done
 
